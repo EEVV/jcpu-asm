@@ -1,0 +1,13 @@
+# r0 = fibs r0
+# r1 = n
+# r2 = fibs (r0 + 1)
+# r3 = ret addr
+fibs
+	r0 -> 0
+	r2 -> 1
+fibs_loop
+	r0, r2 -> r2, r0
+	r2 -> r2 + r1
+	r1 -> r1 - 1
+	r15 -> fibs_loop ? !(r1 = 0)
+	r15 -> r3

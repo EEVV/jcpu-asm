@@ -1,0 +1,11 @@
+# r0 = n^2
+# r1 = n
+# r2 = ret addr
+sq
+	r0 -> 0
+	r1 -> r1 + r1
+sq_loop
+	r0 -> r0 + r1
+	r0 -> r0 + 1
+	r15 -> sq_loop ? !(r0 = 0)
+	r15 -> r2
