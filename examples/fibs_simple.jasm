@@ -1,0 +1,14 @@
+# r0 := input
+# r1 := fibs(r0 + 1)
+# r2 := fibs(r0)
+# r3 := 1
+	r0 -> 5
+fibs
+	r1 -> 1
+	r2 -> 0
+	r3 -> 1
+fibs_loop
+	r1 -> r1 + r2
+	r2 -> r1 - r2
+	r0 -> r0 - r3
+	r15 -> fibs_loop ? !(r0 = 0)

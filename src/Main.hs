@@ -40,6 +40,9 @@ inputOnly input = do
     source <- Prelude.readFile input
     let tokensEither = Lexer.lex source
     let stmtsEither = tokensEither >>= \tokens -> Parser.getStmts (Parser tokens)
+    case stmtsEither of
+        Left err -> return ()
+        Right stmts -> print stmtsEither
     let asmEither = stmtsEither >>= \stmts -> Asm.assemble (Asm stmts Data.Map.empty 0)
     let linkEither = asmEither >>= \asm -> Linker.link asm
     case linkEither of

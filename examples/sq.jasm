@@ -1,6 +1,6 @@
-# r0 = n^2
-# r1 = n
-# r2 = ret addr
+# r0 := n^2
+# r1 := n
+# r2 := ret addr
 sq
 	r0 -> 0
 	r1 -> r1 + r1
