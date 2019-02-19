@@ -7,17 +7,23 @@ data Expr = ExprEmpty
     | ExprIden String
     | ExprNot Exprs
     | ExprNeg Exprs
+    | ExprRep Exprs
     | ExprMem Exprs
     | ExprOr Exprs Exprs
     | ExprAnd Exprs Exprs
     | ExprXor Exprs Exprs
     | ExprEq Exprs Exprs
     | ExprLt Exprs Exprs
+    | ExprSignedLt Exprs Exprs
     | ExprGt Exprs Exprs
     | ExprAdd Exprs Exprs
     | ExprSub Exprs Exprs
     | ExprMul Exprs Exprs
-    | ExprDiv Exprs Exprs deriving Show
+    | ExprDiv Exprs Exprs
+    | ExprLeftShift Exprs Exprs
+    | ExprRightShift Exprs Exprs
+    | ExprSignedLeftShift Exprs Exprs
+    | ExprSignedRightShift Exprs Exprs deriving Show
 
 type Exprs = [Expr]
 

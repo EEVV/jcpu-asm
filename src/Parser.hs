@@ -8,8 +8,9 @@ data Parser = Parser [Token] deriving Show
 
 -- expr from token single (one input)
 exprFromTokenS :: Token -> Maybe (Exprs -> Expr)
-exprFromTokenS (Token TokenNot _) = Just $ \a -> ExprNot a
-exprFromTokenS (Token TokenSub _) = Just $ \a -> ExprNeg a
+exprFromTokenS (Token TokenNot _) = Just $ ExprNot
+exprFromTokenS (Token TokenSub _) = Just $ ExprNeg
+exprFromTokenS (Token TokenDiv _) = Just $ ExprRep
 exprFromTokenS _ = Nothing
 
 -- expr from token double (two inputs)
@@ -19,11 +20,15 @@ exprFromTokenD TokenAnd = Just ExprAnd
 exprFromTokenD TokenXor = Just ExprXor
 exprFromTokenD TokenEq = Just ExprEq
 exprFromTokenD TokenLt = Just ExprLt
-exprFromTokenD TokenGt = Just ExprGt
+exprFromTokenD TokenSignedLt = Just ExprSignedLt
 exprFromTokenD TokenAdd = Just ExprAdd
 exprFromTokenD TokenSub = Just ExprSub
 exprFromTokenD TokenMul = Just ExprMul
 exprFromTokenD TokenDiv = Just ExprDiv
+exprFromTokenD TokenLeftShift = Just ExprLeftShift
+exprFromTokenD TokenRightShift = Just ExprRightShift
+exprFromTokenD TokenSignedLeftShift = Just ExprSignedLeftShift
+exprFromTokenD TokenSignedRightShift = Just ExprSignedRightShift
 exprFromTokenD _ = Nothing
 
 getUnit :: Parser -> Either Error (Parser, Exprs)

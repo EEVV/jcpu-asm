@@ -14,10 +14,14 @@ data TokenType = TokenEmpty
     | TokenXor
     | TokenAdd
     | TokenSub
+    | TokenLeftShift
+    | TokenRightShift
+    | TokenSignedLeftShift
+    | TokenSignedRightShift
     -- todo fix eq
     | TokenEq
     | TokenLt
-    | TokenGt
+    | TokenSignedLt
     | TokenMul
     | TokenDiv
     -- end operations
@@ -45,9 +49,13 @@ instance Show TokenType where
     show TokenSub = show "-"
     show TokenEq = show "="
     show TokenLt = show "<"
-    show TokenGt = show ">"
+    show TokenSignedLt = show "$<"
     show TokenMul = show "*"
     show TokenDiv = show "/"
+    show TokenLeftShift = show "<<"
+    show TokenRightShift = show ">>"
+    show TokenSignedLeftShift = show "<<<"
+    show TokenSignedRightShift = show ">>>"
     show TokenCond = show "?"
     show TokenParenLeft = show "("
     show TokenParenRight = show ")"

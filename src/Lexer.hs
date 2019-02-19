@@ -37,6 +37,11 @@ getToken :: Lexer -> Either Error (Lexer, Token)
 getToken lexer =
     let newState xs tokenType = Right (lexer {source = xs}, Token tokenType (Lexer.line lexer)) in
     case source lexer of
+        '$':'<':'<':xs -> newState xs TokenSignedLeftShift
+        '$':'>':'>':xs -> newState xs TokenSignedRightShift
+        '<':'<':xs -> newState xs TokenLeftShift
+        '>':'>':xs -> newState xs TokenRightShift
+        '$':'<':xs -> newState xs TokenSignedLt
         '-':'>':xs -> newState xs TokenTo
         '#':xs -> getToken (untilNewline (lexer {source = xs}))
         '_':xs -> newState xs TokenEmpty
@@ -48,7 +53,6 @@ getToken lexer =
         '+':xs -> newState xs TokenAdd
         '=':xs -> newState xs TokenEq
         '<':xs -> newState xs TokenLt
-        '>':xs -> newState xs TokenGt
         '*':xs -> newState xs TokenMul
         '/':xs -> newState xs TokenDiv
         '?':xs -> newState xs TokenCond

@@ -91,7 +91,7 @@ asmInstCond [ExprEq [ExprReg r] [ExprNum 0]] = Right $ Inst
     0
     0
     r
-    False
+    True
     True
     0
     (Waiting [])
@@ -106,15 +106,15 @@ asmInstCond [ExprNot [ExprEq [ExprReg r] [ExprNum 0]]] = Right $ Inst
     0
     0
     r
-    True
+    False
     True
     0
     (Waiting [])
     (Waiting [])
 asmInstCond exprs = Left $ ErrorInvalidCond exprs
 
-asmInstOps :: Inst -> (Expr, Expr) -> (Expr, Expr) -> Either Error Inst
-asmInstOps inst (dest1, dest0) (src1, src0) = do
+asmInstOps :: Inst -> (Expr, Expr) -> Either Error Inst
+asmInstOps inst (src1, src0) = do
     inst <- case src0 of
         ExprNum n -> Right $ inst {i0 = True, imm0 = Direct $ fromIntegral n}
         ExprIden s -> Right $ inst {i0 = True, imm0 = Waiting s}
@@ -127,12 +127,6 @@ asmInstOps inst (dest1, dest0) (src1, src0) = do
         ExprReg r -> Right $ inst {src1 = r}
         ExprEmpty -> Right inst
         _ -> Left $ ErrorInvalidOperand [src1]
-    inst <- case dest0 of
-        ExprReg r -> Right $ inst {w0 = True, dest0 = r}
-        ExprEmpty -> Right inst
-    inst <- case dest1 of
-        ExprReg r -> Right $ inst {w1 = True, dest1 = r}
-        ExprEmpty -> Right inst
     return inst
 
 -- expects [Expr] to contain only one element
@@ -173,6 +167,26 @@ asmInst asm = case stmts asm of
             [ExprReg r] -> Right (inst, (ExprEmpty, ExprReg r))
             [ExprReg r0, ExprReg r1] -> Right (inst, (ExprReg r0, ExprReg r1))
             -- operations
+            -- nor
+            [ExprNot [ExprOr exprs0 exprs1]] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 3}, srcs)
+            -- nand
+            [ExprNot [ExprAnd exprs0 exprs1]] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 5}, srcs)
+            -- xnor
+            [ExprNot [ExprXor exprs0 exprs1]] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 7}, srcs)
+            -- not less than
+            [ExprNot [ExprLt exprs0 exprs1]] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 12}, srcs)
+            -- not signed less than
+            [ExprNot [ExprSignedLt exprs0 exprs1]] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 14}, srcs)
             -- not
             [ExprNot [expr]] -> do
                 return (inst {opcode = 1}, (ExprEmpty, expr))
@@ -188,6 +202,9 @@ asmInst asm = case stmts asm of
             [ExprXor exprs0 exprs1] -> do
                 srcs <- onlySingles (exprs0, exprs1)
                 return (inst {opcode = 6}, srcs)
+            -- neg
+            [ExprNeg [expr]] -> do
+                return (inst {opcode = 8}, (ExprEmpty, expr))
             -- add
             [ExprAdd exprs0 exprs1] -> do
                 srcs <- onlySingles (exprs0, exprs1)
@@ -196,6 +213,9 @@ asmInst asm = case stmts asm of
             [ExprSub exprs0 exprs1] -> do
                 srcs <- onlySingles (exprs0, exprs1)
                 return (inst {opcode = 10}, srcs)
+            -- rep
+            [ExprRep [expr]] -> do
+                return (inst {opcode = 19}, (ExprEmpty, expr))
             -- mul
             [ExprMul exprs0 exprs1] -> do
                 srcs <- onlySingles (exprs0, exprs1)
@@ -204,11 +224,42 @@ asmInst asm = case stmts asm of
             [ExprDiv exprs0 exprs1] -> do
                 srcs <- onlySingles (exprs0, exprs1)
                 return (inst {opcode = 21}, srcs)
+            -- left shift
+            [ExprLeftShift exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 15}, srcs)
+            -- right shift
+            [ExprRightShift exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 16}, srcs)
+            -- signed left shift
+            [ExprSignedLeftShift exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 17}, srcs)
+            -- signed right shift
+            [ExprSignedRightShift exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 18}, srcs)
+            -- less than
+            [ExprLt exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 11}, srcs)
+            -- signed less than
+            [ExprSignedLt exprs0 exprs1] -> do
+                srcs <- onlySingles (exprs0, exprs1)
+                return (inst {opcode = 13}, srcs)
+            -- load
+            [ExprMem [expr]] -> do
+                return (inst {opcode = 27}, (ExprEmpty, expr))
             exprs -> Left $ ErrorInvalidInst (StmtSet exprs0 exprs1 cond)
-        dests <- case exprs0 of
-            [ExprReg r] -> Right (ExprEmpty, ExprReg r)
-            [ExprReg r0, ExprReg r1] -> Right (ExprReg r0, ExprReg r1)
-        inst <- asmInstOps inst dests srcs
+        inst <- case exprs0 of
+            [ExprReg r] -> Right $ inst {w0 = True, dest0 = r}
+            [ExprReg r1, ExprReg r0] -> Right $ inst {w0 = True, w1 = True, dest0 = r0, dest1 = r1}
+            [ExprMem [ExprReg r]] | (opcode inst) == 0 -> Right $ inst {opcode = 24, src1 = r}
+            [ExprMem [ExprNum n]] | (opcode inst) == 0 -> Right $ inst {opcode = 24, i1 = True, imm1 = Direct $ fromIntegral n}
+            [ExprMem [ExprIden s]] | (opcode inst) == 0 -> Right $ inst {opcode = 24, i1 = True, imm1 = Waiting s}
+            _ -> Left $ ErrorInvalidInst (StmtSet exprs0 exprs1 cond)
+        inst <- asmInstOps inst srcs
         return (asm {stmts = stmts}, instGen inst)
 
 assemble :: Asm -> Either Error ([ArchWord], Map String Int)

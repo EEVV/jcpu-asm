@@ -29,8 +29,8 @@ link ((Waiting sym):words, symbols) = case Data.Map.lookup sym symbols of
 asBytes :: Bins -> [Word8]
 asBytes (Bins []) = []
 asBytes (Bins (x:xs)) = fmap fromIntegral [
-        x `shiftR` 24,
-        x `shiftR` 16,
+        x,
         x `shiftR` 8,
-        x
+        x `shiftR` 16,
+        x `shiftR` 24
     ] ++ asBytes (Bins xs)
